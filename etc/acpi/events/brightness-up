@@ -1,0 +1,2 @@
+event=video/brightnessup BRTUP
+action=/usr/verixo-bin/brightness.sh up

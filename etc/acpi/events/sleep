@@ -1,0 +1,2 @@
+event=button/sleep SBTN
+action=/usr/verixo-bin/OS_Desktop --hibernate

@@ -1,0 +1,21 @@
+#!/bin/sh
+
+if [ $# -eq 0 ]; then
+        echo "No arguments supplied"
+        exit 1
+fi
+
+	echo "ThinprintEnable = $1" > /data/thinprint.conf
+
+ if [ $2 != " " ]; then
+	echo "ThinprintPort  = $2" >> /data/thinprint.conf
+else
+	echo  "ThinprintPort  = 4000" >> /data/thinprint.conf
+fi
+	sed '/0.0.0.0/c \interface = 0.0.0.0:$2' /root/.thnuclnt/thnuclnt.conf
+
+	/etc/rc.d/ThinPrint stop
+
+if [ $1 = 1 ]; then
+	/etc/rc.d/ThinPrint start
+fi

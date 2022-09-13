@@ -1,0 +1,1 @@
+/usr/verixo-bin/usb.sh

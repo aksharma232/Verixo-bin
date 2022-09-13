@@ -1,0 +1,2 @@
+event=button/micmute MICMUTE 00000080 00000000 K
+action=/usr/verixo-bin/sound_plug_unplug.sh micmute

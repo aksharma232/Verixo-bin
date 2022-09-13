@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#MOVE FIREFOX WINDOW TO SECONDARY MONITOR
+
+set -x
+
+while :
+do
+
+#xdotool search --pid $1
+#status=$?
+
+#if [ $status -eq 0 ]
+#then
+	sleep 4
+	move-to-next-monitor `wmctrl -lp | grep -i $1 | awk -F" " '{print strtonum ($1)}'`
+	status=$?
+	echo $status	
+	if [ $status -eq 0 ]
+	then
+		exit
+	fi
+	
+#fi
+
+done

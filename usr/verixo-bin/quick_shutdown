@@ -1,0 +1,244 @@
+#!/bin/bash
+
+echo 1 > /sys/power/pm_async
+sleep 0.5
+echo 0 > /sys/power/pm_async
+sleep 0.5
+sync
+
+lshw -c system | grep -i product | grep -qi "LIVA Z2V"
+if [ "$?" -eq "0" ]; then
+	echo s2idle > /sys/power/mem_sleep
+fi
+
+killall windowlist Sound
+killall idle_vxl
+
+first=`grep ^connected /sys/class/drm/*/status | wc -l`
+
+for i in `sqlite3 /data/sysconf.db "select pid from processinfo where process !='Desktop' AND process !='ServerManager'"`
+do
+	kill -9 $i
+done
+
+echo "processinfo done" 
+sync
+
+for k in `sqlite3 /data/sysconf.db "select PID from connectiontable" | sed 's/,/ /g'`
+do
+	kill -9 $k
+done
+
+rm -rf /tmp/.pnagent/
+rm -rf /root/.ICAClient/cache/*.ICA
+
+sync
+
+for j in `sqlite3 /data/sysconf.db "select PID from AppInfo"`
+do
+	kill -9 $j
+done
+
+sync
+
+for i in `wmctrl -l | awk '{print $1}'`
+do
+	xprop -id $i | grep WM_CLASS | grep -i "OS_Desktop\|LockScreen"
+
+	if [ "x$?" == "x0" ]; then
+		continue
+	fi
+
+	xdotool windowminimize `printf "%d\n" $i`
+	xdotool windowkill `printf "%d\n" $i`
+done
+
+#Can't kill icewm with -9 parameter because icewm not killed with signals.
+
+killall icewm
+killall icewm*
+
+rm -rf /tmp/.rdweb
+
+sync
+
+/usr/bin/killapp
+
+rm -rf /tmp/.impBG
+#rm -rf /tmp/.shutdown
+killall -9 ftvusbnetd
+rmmod fthc
+touch /tmp/.ftusbclient
+touch /tmp/xkilled
+
+# [ Imprivata ]
+killall -9 ImprivataDaemon
+killall -9 QServerSocket
+killall -9 fpdaemon
+killall -9 gem-prox-tool
+rm -rf /tmp/.cardinfofile
+
+rm -rf /tmp/.proxcardconnected
+rm -rf /tmp/.fingerprintconnected
+rm -rf /tmp/.enrolluiopened*
+rm -rf /tmp/vcsocket*
+
+sync
+
+#For L470 Laptop
+
+grep LID /proc/acpi/wakeup | grep -q enabled
+[ "$?" -eq "0" ] && echo LID > /proc/acpi/wakeup 
+
+grep SLPB /proc/acpi/wakeup | grep -q enabled
+[ "$?" -eq "0" ] && echo SLPB > /proc/acpi/wakeup 
+
+# Done this because TC is wakeup with key stroke even after shutdown
+#grep XHC1 /proc/acpi/wakeup | grep -q enabled
+#[ "$?" -eq 0 ] && echo XHC1 > /proc/acpi/wakeup
+
+grep XHC /proc/acpi/wakeup | grep -q enabled
+if [ "$?" -eq "0" ]; then
+
+	for i in `grep ^XHC /proc/acpi/wakeup  | awk '{print $1}'`; do echo $i  > /proc/acpi/wakeup; done
+
+fi
+
+RemoteSettingCheck=`sqlite3 /data/sysconf.db "select ClientStatus from ClientSettings"`
+
+X11VNC=`sqlite3 /data/sysconf.db "select * from services where ServiceName='x11vnc'"`
+FABULATECH=`sqlite3 /data/sysconf.db "select * from services where ServiceName='FabulaTech'"`
+
+if [ "$X11VNC" ==  "x11vnc" ]
+then
+	/etc/rc.d/service/x11vnc stop
+fi
+
+manufacturer=`cat /tmp/.hwdetails | grep -i COM_Manufacturer| awk -F"=" '{print $2}' | sed -e 's/^[[:space:]]*//'`
+
+product=`cat /tmp/.hwdetails | grep -i COM_Model | awk -F"=" '{print $2}' | sed -e 's/^[[:space:]]*//'`
+
+if [ "$manufacturer" == "Notebook" ]; then
+    echo HDAS > /proc/acpi/wakeup
+elif [ "$manufacturer" == "Impact Technologies" ] && [ "$product" == "ITIUM MOBILE" ]; then
+    echo HDAS > /proc/acpi/wakeup
+fi
+
+cd /sys/bus/pci/drivers/ohci-pci
+for i in `dmesg | grep -i ohci-pci | grep controller -i | awk '{print $4}' | sort -u | cut -d: -f1,2,3`
+do
+    echo -n $i > unbind
+done
+cd -
+
+cd /sys/bus/pci/drivers/xhci_hcd
+for i in `dmesg | grep -i xhci_hcd | grep -i controller | awk '{print $4}' | sort -u | cut -d: -f 1,2,3`
+do
+	echo -n $i > unbind
+done
+cd -
+sync
+
+echo mem > /sys/power/state
+status=$?
+
+# Done this because with Finger print scanner 3001, some times got error Device is busy.
+if [ "$status" != "0" ];then
+	sleep 1
+	sync
+	echo mem > /sys/power/state
+	status1=$?
+	if [ "$status1" != "0" ];then
+		sleep 0.5
+		sync
+		killall -9 ImprivataDaemon
+		killall -9 QServerSocket
+		killall ImprivataDaemon*
+		killall QServerSocket*
+		killall -9 fpdaemon
+		killall -9 gem-prox-tool
+		sleep 0.5
+		sync
+		echo mem > /sys/power/state
+	fi	
+fi
+
+cd /sys/bus/pci/drivers/xhci_hcd
+for i in `dmesg | grep -i xhci_hcd | grep -i controller | awk '{print $4}' | sort -u | cut -d: -f 1,2,3`
+do
+	echo -n $i > bind
+done
+
+cd /sys/bus/pci/drivers/ohci-pci
+for i in `dmesg | grep -i ohci-pci | grep controller -i | awk '{print $4}' | sort -u | cut -d: -f1,2,3`
+do
+        echo -n $i > bind
+done
+cd -
+
+echo $RemoteSettingCheck
+if [ "$RemoteSettingCheck" == "1" ]
+then
+	killall VMSSigHandler
+    /usr/verixo-bin/VMSSigHandler &
+fi
+
+if [ "$X11VNC" == "x11vnc" ]
+then
+	/etc/rc.d/service/x11vnc start &
+fi
+
+if [ "$FABULATECH" == "FabulaTech" ]
+then
+	/etc/rc.d/service/FabulaTech restart &
+fi
+
+grep LID /proc/acpi/wakeup | grep -q disabled
+[ "$?" -eq "0" ] && echo LID > /proc/acpi/wakeup 
+
+grep SLPB /proc/acpi/wakeup | grep -q disabled
+[ "$?" -eq "0" ] && echo SLPB > /proc/acpi/wakeup 
+
+#grep XHC1 /proc/acpi/wakeup | grep -q disabled
+#[ "$?" -eq 0 ] && echo XHC1 > /proc/acpi/wakeup
+
+grep XHC /proc/acpi/wakeup | grep -q disabled
+if [ "$?" -eq "0" ]; then
+
+    for i in `grep ^XHC /proc/acpi/wakeup  | awk '{print $1}'`; do echo $i  > /proc/acpi/wakeup; done
+
+fi
+####################################################################
+#To get display port using xrandr command
+
+a=`/usr/bin/xrandr.orig | grep " connected"  | grep -v -i virtual | awk -F" " '{print $1}'`
+
+
+#To get virtual display in xrandr command
+
+/usr/bin/xrandr.orig | grep " connected"  | grep  -i virtual
+status1=$?
+
+if [ "$status1" -eq "0" ]
+then
+	/usr/bin/xrandr.orig --output $a --off ; /usr/bin/xrandr.orig --output $a --auto
+else
+	echo "do nothing"
+fi
+####################################################################
+
+/usr/bin/file-remove.sh 
+
+/usr/bin/HighResolution.sh
+
+kill -9 `pidof LockScreen`
+kill -9 `pidof OS_Desktop`
+touch /tmp/.tosetdatetime
+rm -rf /tmp/.logout
+rm -rf /tmp/.shutdown
+
+second=`grep ^connected /sys/class/drm/*/status | wc -l`
+
+if [ "${first}" != "${second}" ]; then
+	/sbin/reboot
+fi

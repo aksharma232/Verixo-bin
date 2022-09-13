@@ -1,0 +1,76 @@
+#!/bin/bash
+
+AUTHMODE=`sqlite3 /data/sysconf.db "Select value from sysconf where property='Imprivata'"`
+
+if [ "$AUTHMODE" == "Disable" ]; then
+	rm -rf /tmp/.cardinfofile
+	exit 0
+fi
+
+kill_vmware() {
+        kill -9 `pidof xfreerdp` &>>/dev/null
+        
+        if [ "$?" = "0" ]; then
+                sleep 2
+        fi
+	kill -9 `pidof vmware-view-crtbora` &>>/dev/null
+        kill -9 `pidof vmware-view` &>>/dev/null
+        kill -9 `pidof vmware-remotemks` &>>/dev/null
+        kill -9 `pidof vmware-remotemks-container` &>>/dev/null
+}
+
+forcelogout=$(grep ImprivataForceLogout /sda1/data/.defaultvalues | sed "s/ //g" | awk -F= '{print $2}' | sed -e 's/\r//g')
+
+if [ "$forcelogout" == "1" ] ; then
+	rm -rf /tmp/vcsocket-srv_*
+
+	ps ax | grep VOSSelfService | grep -v grep
+	SSStatus=`echo $?`
+
+	kill_vmware "$@"
+
+	killall -9 walkaway
+
+#       for xid in `xprop -root | grep ^_NET_CLIENT_LIST | grep -v STACKING | awk -F'#' '{print $2}' | awk '{gsub(",","\n");print}'`;
+#       do
+#       	xkill -id  $xid;
+#       done
+
+	for pid in `wmctrl -lp  | grep -v 'Desktop' | awk '{print $3}'`
+	do
+        	kill -9 $pid;
+	done
+
+	if [ ! -f /tmp/.impriLogOut ];then
+		OS_Desktop --forcelogout
+    	fi
+else
+	mode=`sqlite3 /data/sysconf.db "Select value from imprivata where property='CloseOnLock'"`
+
+	if [ "$mode" == "true" ] ; then
+    		rm -rf /tmp/vcsocket-srv_*
+	        rm -rf /tmp/.enrolluiopened*
+
+		kill_vmware "$@"		
+		killall -9 walkaway
+
+		mongodb /data/sysconf.db "Delete from imprivata where property='CloseOnLock'"
+			
+		if [ ! -f /tmp/.impriLogOut ];then
+			OS_Desktop --forcelogout
+		fi
+
+		killall -9 /usr/verixo-bin/ServerManager
+        	killall -9 ServerManager
+
+        else
+		ps ax | grep Imprivata | grep ManualLock | grep -v grep
+		status=$?
+
+		if [ $status -ne 0 ]; then
+	        	/usr/verixo-bin/Imprivata --ManualLock &
+		fi
+        fi
+fi
+
+rm -rf /tmp/.cardinfofile

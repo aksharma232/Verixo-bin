@@ -1,0 +1,86 @@
+﻿<!DOCTYPE keyboard>
+<keyboard type="French">
+    <key nr="1" text="Éch" shift="Éch" caps="Éch"  alt="" alt-ctrl="" keycode="9" />
+    <key nr="2" text="F1" shift="F1"  caps="F1"  alt="" alt-ctrl="" keycode="67" />
+    <key nr="3" text="F2" shift="F2"  caps="F2"  alt="" alt-ctrl="" keycode="68" />
+    <key nr="4" text="F3" shift="F3"  caps="F3"  alt="" alt-ctrl="" keycode="69" />
+    <key nr="5" text="F4" shift="F4"  caps="F4"  alt="" alt-ctrl="" keycode="70" />
+    <key nr="6" text="F5" shift="F5"  caps="F5"  alt="" alt-ctrl="" keycode="71" />
+    <key nr="7" text="F6" shift="F6"  caps="F6"  alt="" alt-ctrl="" keycode="72" />
+    <key nr="8" text="F7" shift="F7"  caps="F7"  alt="" alt-ctrl="" keycode="73" />
+    <key nr="9" text="F8" shift="F8"  caps="F8"  alt="" alt-ctrl="" keycode="74" />
+    <key nr="10" text="F9" shift="F9"  caps="F9"  alt="" alt-ctrl="" keycode="75" />
+    <key nr="11" text="F10" shift="F10"  caps="F10"  alt="" alt-ctrl="" keycode="76" />
+    <key nr="12" text="F11" shift="F11"  caps="F11"  alt="" alt-ctrl="" keycode="95" />
+    <key nr="13" text="F12" shift="F12" caps="F12"   alt="" alt-ctrl="" keycode="96" />
+    <key nr="14" text="²" shift="" caps="²"  alt="" alt-ctrl="" keycode="49" />
+    <key nr="15" text="&amp;" shift="1" caps="&amp;"   alt="" alt-ctrl="" keycode="10" />
+    <key nr="16" text="é" shift="2"  caps="é" alt="" alt-ctrl="~" keycode="11" />
+    <key nr="17" text="&quot;" shift="3"  caps="&quot;"  alt="" alt-ctrl="#" keycode="12" />
+    <key nr="18" text="'" shift="4"  caps="'"  alt="" alt-ctrl="{" keycode="13" />
+    <key nr="19" text="(" shift="5"  caps="("  alt="" alt-ctrl="[" keycode="14" />
+    <key nr="20" text="-" shift="6"  caps="-"  alt="" alt-ctrl="|" keycode="15" />
+    <key nr="21" text="è" shift="7"  caps="è"  alt="" alt-ctrl="`" keycode="16" />
+    <key nr="22" text="_" shift="8"  caps="_"  alt="" alt-ctrl="\" keycode="17" />
+    <key nr="23" text="ç" shift="9"  caps="ç"  alt="" alt-ctrl="^" keycode="18" />
+    <key nr="24" text="à" shift="0"  caps="à"  alt="" alt-ctrl="@" keycode="19" />
+    <key nr="25" text=")" shift="°"  caps=")"  alt="" alt-ctrl="]" keycode="20" />
+    <key nr="26" text="=" shift="+"  caps="="  alt="" alt-ctrl="}" keycode="21" />
+    <key nr="27" text="menu" shift="menu"  caps="menu"  alt="menu" alt-ctrl="menu" keycode="" />
+    <key nr="28" text="RetArr" shift="RetArr"  caps="RetArr"   alt="RetArr" alt-ctrl="RetArr" keycode="22" />
+    <key nr="29" text="Origine" shift="Origine" caps="Origine"   alt="Origine" alt-ctrl="Origine" keycode="110" />
+    <key nr="30" text="Tab" shift="Tab"  caps="Tab"  alt="Tab" alt-ctrl="Tab" keycode="23" />
+    <key nr="31" text="a" shift="A"  caps="A"  alt="" alt-ctrl="" keycode="24" />
+    <key nr="32" text="z" shift="Z"  caps="Z"  alt="" alt-ctrl="" keycode="25" />
+    <key nr="33" text="e" shift="E"  caps="E"  alt="" alt-ctrl="€" keycode="26" />
+    <key nr="34" text="r" shift="R"  caps="R"  alt="" alt-ctrl="" keycode="27" />
+    <key nr="35" text="t" shift="T"  caps="T"  alt="" alt-ctrl="" keycode="28" />
+    <key nr="36" text="y" shift="Y"  caps="Y"  alt="" alt-ctrl="" keycode="29" />
+    <key nr="37" text="u" shift="U"  caps="U"  alt="" alt-ctrl="" keycode="30" />
+    <key nr="38" text="i" shift="I"  caps="I"  alt="" alt-ctrl="" keycode="31" />
+    <key nr="39" text="o" shift="O"  caps="O"  alt="" alt-ctrl="" keycode="32" />
+    <key nr="40" text="p" shift="P"  caps="P"   alt="" alt-ctrl="" keycode="33" />
+    <key nr="41" text="^" shift="¨"  caps="^"   alt="" alt-ctrl="" keycode="34" />
+    <key nr="42" text="$" shift="£"  caps="$"  alt="" alt-ctrl="¤" keycode="35" />
+    <key nr="43" text="*" shift="µ"  caps="*"  alt="" alt-ctrl="" keycode="51" />
+    <key nr="44" text="Pg préc." shift="Pg préc."  caps="Pg préc."  alt="Pg préc." alt-ctrl="Pg préc." keycode="112" />
+    <key nr="45" text="Verr.maj" shift="Verr.maj"  caps="Verr.maj"  alt="Verr.maj" alt-ctrl="Verr.maj" keycode="66" />
+    <key nr="46" text="q" shift="Q"  caps="Q"  alt="" alt-ctrl="" keycode="38" />
+    <key nr="47" text="s" shift="S"  caps="S"  alt="" alt-ctrl="" keycode="39" />
+    <key nr="48" text="d" shift="D"  caps="D"  alt="" alt-ctrl="" keycode="40" />
+    <key nr="49" text="f" shift="F"  caps="F"  alt="" alt-ctrl="" keycode="41" />
+    <key nr="50" text="g" shift="G"  caps="G"  alt="" alt-ctrl="" keycode="42" />
+    <key nr="51" text="h" shift="H"  caps="H"  alt="" alt-ctrl="" keycode="43" />
+    <key nr="52" text="j" shift="J"  caps="J"  alt="" alt-ctrl="" keycode="44" />
+    <key nr="53" text="k" shift="K"  caps="K"  alt="" alt-ctrl="" keycode="45" />
+    <key nr="54" text="l" shift="L"  caps="L"  alt="" alt-ctrl="" keycode="46" />
+    <key nr="55" text="m" shift="M"  caps="M"  alt="" alt-ctrl="" keycode="47" />
+    <key nr="56" text="ù" shift="%"  caps="ù"  alt="" alt-ctrl="" keycode="48" />
+    <key nr="57" text="↩" shift="↩"  caps="↩"  alt="↩" alt-ctrl="" keycode="36" />
+    <key nr="58" text="Pg suiv." shift="Pg suiv."  caps="Pg suiv."  alt="Pg suiv." alt-ctrl="Pg suiv." keycode="117" />
+    <key nr="59" text="Maj" shift="Maj"  caps="Maj"  alt="Maj" alt-ctrl="Maj" keycode="50" />
+    <key nr="60" text="w" shift="W"  caps="W"  alt="" alt-ctrl="" keycode="52" />
+    <key nr="61" text="x" shift="X"  caps="X"  alt="" alt-ctrl="" keycode="53" />
+    <key nr="62" text="c" shift="C"  caps="C"  alt="" alt-ctrl="" keycode="54" />
+    <key nr="63" text="v" shift="V"  caps="V"  alt="" alt-ctrl="" keycode="55" />
+    <key nr="64" text="b" shift="B"  caps="B"  alt="" alt-ctrl="" keycode="56" />
+    <key nr="65" text="n" shift="N"  caps="N"  alt="" alt-ctrl="" keycode="57" />
+    <key nr="66" text="," shift="?"  caps=","  alt="" alt-ctrl="" keycode="58" />
+    <key nr="67" text=";" shift="."  caps=";"  alt="" alt-ctrl="" keycode="59" />
+    <key nr="68" text=":" shift="/"  caps=":"  alt="" alt-ctrl="" keycode="60" />
+    <key nr="69" text="!" shift="§"  caps="!"  alt="" alt-ctrl="" keycode="61" />
+    <key nr="70" text="Maj" shift="Maj" caps="Maj"   alt="Maj" alt-ctrl="Maj" keycode="62" />
+    <key nr="71" text="▲" shift="▲" caps="▲"   alt="▲" alt-ctrl="▲" keycode="111" />
+    <key nr="72" text="Fin" shift="Fin" caps="Fin"   alt="Fin" alt-ctrl="Fin" keycode="115" />
+    <key nr="73" text="Ctrl" shift="Ctrl"  caps="Ctrl"  alt="Ctrl" alt-ctrl="Ctrl" keycode="37" />
+    <key nr="74" text="⌘" shift="⌘" caps="⌘"   alt="⌘" alt-ctrl="⌘" keycode="133" />
+    <key nr="75" text="Alt" shift="Alt"  caps="Alt"  alt="Alt" alt-ctrl="Alt" keycode="64" />
+    <key nr="76" text=" " shift=" "  caps=" "  alt="" alt-ctrl="" keycode="65" />
+    <key nr="77" text="Alt" shift="Alt"  caps="Alt"  alt="Alt" alt-ctrl="Alt" keycode="108" />
+    <key nr="78" text="≡" shift="≡"  caps="≡"  alt="≡" alt-ctrl="≡" keycode="135" />
+    <key nr="79" text="Suppr" shift="Suppr" caps="Suppr"   alt="Suppr" alt-ctrl="Suppr" keycode="119" />
+    <key nr="80" text="Le lnm" shift="Le lnm" caps="Le lnm"   alt="Le lnm" alt-ctrl="Le lnm" keycode="77" />
+    <key nr="81" text="◄" shift="◄"  caps="◄"  alt="◄" alt-ctrl="◄" keycode="113" />
+    <key nr="82" text="▼" shift="▼" caps="▼"   alt="▼" alt-ctrl="▼" keycode="116" />
+    <key nr="83" text="►" shift="►"  caps="►"  alt="►" alt-ctrl="►" keycode="114" />
+</keyboard>

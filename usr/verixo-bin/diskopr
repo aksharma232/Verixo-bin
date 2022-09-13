@@ -1,0 +1,532 @@
+#!/bin/bash
+##
+## set -x
+err=/tmp/diskopr
+store_dev=`findfs LABEL=sukshm | sed 's/[0-9]*$//g'`
+##
+val_dev()
+    {
+    ##
+    file "$1" | grep 'block special' &> /dev/null
+    ##
+    if [ "$?" == "0" ]; then 
+        export devopr_device=$1
+    else
+        echo "Specified device is not valid storege device." >> $err
+    fi
+    ##
+    }
+##
+val_mount_point()
+    {
+    ##
+    if [ ! -z "$1" ]; then 
+        ##
+        ls "/mnt/$1" &> /dev/null
+        if [ "$?" -eq "0" ]; then 
+            export devopr_mnt_point="$1"
+        else
+            echo "$1 Mount point does not exist." >> $err
+        fi
+        ##
+    else
+        echo "Mount point is not specified." >> $err
+    fi
+    ##
+    }
+##
+val_lable()
+    {
+    ##
+    if [ "$1" != "" ]; then 
+        export devopr_part_lable="$1"
+    else
+        echo "Please enter valid lable for partition" >> $err
+    fi
+    ##
+    }
+##
+part_type()
+    {
+    ##
+    ## l = logical
+    ## e = extended
+    ## p = primary
+    ##
+    if [ "$1" == "logical" ] || [ "$1" == "primary" ] || [ "$1" == "extended" ]; then 
+        export devopr_part_type="$1"
+    else
+        echo "Valid partition type is not specified." >> $err
+    fi
+    ##
+    }
+##
+part_fs_type()
+    {
+    ##
+    if [ ! -z $1 ]; then 
+        export devopr_part_fs_type="$1"
+    else
+        echo "Valid partition type is required." >> $err
+    fi
+    ##
+    }
+##
+val_part_name()
+    {
+    ##
+    if [ ! -z $1 ]; then 
+        export devopr_part_name="$1"
+    else
+        echo "Valid partition name." >> $err
+    fi
+    ##
+    }
+##
+part_fs_type()
+    {
+    ##
+    if [ ! -z $1 ]; then 
+        export devopr_part_fs_type="$1"
+    else
+        echo "Valid partition type is required." >> $err
+    fi
+    ##
+    }
+##
+part_size()
+    {
+    ##
+    s=`echo $1 | sed 's/[a-zA-Z]//g'`
+    ##
+    if [ ! -z "$( echo $1 | grep -E '(GB|MB)$' )" ]; then 
+        ##
+        if [ "$s" -gt "0" ]; then 
+            export devopr_part_size="$1"
+        else
+            export devopr_part_size="$1"
+        fi
+        ##
+    else
+        echo "Valid partition size must be in MB's or GB's." >> $err
+    fi
+    ##
+    }
+##
+val_part_no()
+    {
+    ##
+    if [ "$1" -gt "0" ]; then 
+        export devopr_part_no="$1"
+    else
+        echo "Valid partition number is required to delete partition." >> $err
+    fi
+    ##
+    }
+##
+diskopr_help()
+    {
+    ##
+    echo -e "\nUsage: \n"
+    echo " diskopr [options] <disk>      Change partition table"
+    echo -e " diskopr [options] -d [<disk>] device use for operation \n"
+    echo -e "Display or manipulate a disk partition table.\n"
+    echo -e "Option : \n"
+    echo " -a       Add new partition."
+    echo " -e       Formatting existing partition."
+    echo " -d       Device for operation."
+    echo " -f       File system type for createing partition e.g ext2, ext4, fat16, fat32, linux-swap"
+    echo " -l       Label for mounting partition."
+    echo " -m       Mounting partition."
+    echo " -n       Partition number for operation."
+    echo " -p       Mounting point for operation."
+    echo " -r       Delete existing partition."
+    echo " -s       Size to create partitoin e.g 100MB, 200GB."
+    echo " -t       Partition type e.g log for logical, extended, primary."
+    echo " -u       Unmount partition."
+    echo -e "\n"
+    ##
+    }
+##
+cal_start_sect_newpart()
+    {
+    ##
+    n=`parted  -s $devopr_device print | grep '^ ' | wc -l`
+    ##
+    if [ "$n" -eq "0" ]; then 
+        ## No partition exist condition
+        export devopr_part_start_sect=1
+    else
+        ## getting last partition of end as starting MB for new partition
+        if [ "$1" == "logical" ]; then 
+            ##
+            if [ `parted  -s $devopr_device print | grep '^ ' | grep "logical" | wc -l` -ne "0" ]; then 
+                ## check if logical partition is exist or not and get end for start of new partition.
+                s=`parted -s $devopr_device 'unit MB print'  | grep "$1" | tail -n 1 | awk '{ print $3 }' | sed 's/[A-Za-z]*$//g' | cut -d '.' -f 1`
+                s=$(( $s + 1)) 
+                export devopr_part_start_sect=$s"MB"
+            else
+                ## if extended partition is exist then start of new partition is start of extended partition.
+                s=`parted -s $devopr_device 'unit MB print'  | grep "extended" | tail -n 1 | awk '{ print $2 }' | sed 's/[A-Za-z]*$//g' | cut -d '.' -f 1 `
+                s=$(( $s + 1)) 
+                export devopr_part_start_sect=$s"MB"
+                ##
+            fi
+            ##
+        else
+            export devopr_part_start_sect=`parted -s $devopr_device 'unit MB print'  | grep '^ ' | tail -n 1 | awk '{ print $3 }'`
+        fi
+        ##
+    fi   
+    }
+##
+cal_end_sect_newpart()
+    {
+    ##
+    s=`echo $devopr_part_size | sed 's/[a-zA-Z]*//g'`
+    a=`echo $devopr_part_start_sect | sed 's/[a-zA-Z]*//g'`
+    ##
+    if [ ! -z "$s" ] && [ ! -z "$a" ]; then
+        ##
+        if [ "$(echo "$devopr_part_size" | grep -E "MB$")" ]; then
+            export devopr_part_end_sect=$(( $s + $a ))"MB"
+        elif [ "$(echo "$devopr_part_size" | grep -E "GB$")" ]; then
+            export devopr_part_end_sect=$(( $s * 1024 + $a))"MB"
+        fi
+        ##
+    fi
+    ##
+    }
+##
+check_part_no_is_exit()
+    {
+    ##
+    if [ -z "$(parted $devopr_device print | grep '^ ' | tr -s ' ' '|' | sed 's/^|//g'  | grep -E "^$devopr_part_no")" ]; then
+        ##
+        if [ ! -z $( grep 'Partition does not exit.' $err ) ]; then
+            echo "Partition does not exit." >> $err
+        fi
+        ##
+    fi
+    ##
+    }
+##
+umount_del_part()
+    {
+    ##
+    if [ ! -z "$(df -h | grep "$devopr_device""$devopr_part_no")" ]; then
+        ##
+        if [ ! -z $(umount "$devopr_device""$devopr_part_no" 1> /dev/null) ]; then
+            echo "Failed to unmount partition for delete operation." >> $err
+        fi
+        ##
+    fi
+    ##
+    }
+##
+get_add_part_cmd()
+    {
+    ##
+    if [ "$devopr_part_type" == "primary" ]; then 
+        ##
+        cal_start_sect_newpart
+        cal_end_sect_newpart 
+        cmd="parted -s $devopr_device mkpart $devopr_part_type $devopr_part_fs_type $devopr_part_start_sect $devopr_part_end_sect"
+        ##
+    elif [ "$devopr_part_type" == "logical" ]; then 
+        ##
+        cal_start_sect_newpart "logical"
+        cal_end_sect_newpart 
+        cmd="parted -s $devopr_device mkpart $devopr_part_type $devopr_part_fs_type $devopr_part_start_sect $devopr_part_end_sect"
+        ##
+    elif [ "$devopr_part_type" == "extended" ]; then 
+        ##
+        cal_start_sect_newpart
+        cal_end_sect_newpart 
+        cmd="parted -s $devopr_device mkpart $devopr_part_type $devopr_part_start_sect $devopr_part_end_sect"
+        ##
+    fi
+    ##
+    echo $cmd
+    ##
+    }
+##
+mount_new_created_part()
+    {
+    ##
+    newpart="/dev/"`grep -xvFf /tmp/old_part_lay /tmp/new_part_lay`
+    ##
+	mkdir -p "/mnt/$devopr_part_lable" &> /dev/null
+	##
+	if [ "$devopr_part_fs_type" != "linux-swap" ]; then
+        ##
+        if [ -d "/mnt/$devopr_part_lable" ]; then
+            mount $newpart "/mnt/$devopr_part_lable" &> /dev/null 
+        else
+            echo "Mount point is not found" >>  $err
+        fi
+        ##
+	elif [ "$devopr_part_fs_type" == "linux-swap" ]; then
+       swapon $newpart &> /dev/null
+    fi
+    ##
+    }
+##
+format_fs()
+    {
+	##
+	if [ "$devopr_part_lable" != "" ]; then
+        lbl="-L \"$devopr_part_lable\""
+    else
+        lbl=""
+	fi
+    ##
+    if [[ "$devopr_part_fs_type" == "ext"* ]]; then
+        cmd="echo 'y' |  mkfs.$devopr_part_fs_type $lbl $1 &> /tmp/newpart.mkfs"
+        eval $cmd
+        export dev_part_format="$?"
+        ##
+    elif [ "$devopr_part_fs_type"  == "ntfs" ]; then
+        cmd="mkfs.$devopr_part_fs_type $lbl $1 &> /tmp/newpart.mkfs"
+        eval $cmd
+        export dev_part_format="$?"
+        ##
+    elif [[ "$devopr_part_fs_type" == "fat"* ]]; then
+        fat_type=`echo $devopr_part_fs_type | grep -oE '[0-9]*$'`
+        mkfs.vfat -F $fat_type $1 &> /tmp/newpart.mkfs
+	    fatlabel $1 "$devopr_part_lable" &> /tmp/newpart.lable
+        export dev_part_format="$?"
+        ##
+    elif [[ "$devopr_part_fs_type" == "linux-swap" ]]; then
+        cmd="mkswap $1 $lbl &> /tmp/newpart.mkfs"
+        eval $cmd
+        export dev_part_format="$?"
+        ##
+    fi
+    ##
+    }
+##
+new_part_format_fs()
+    {
+    ##
+	##
+    newpart="/dev/"`grep -xvFf /tmp/old_part_lay /tmp/new_part_lay`
+    ##
+    format_fs "$newpart" 
+    ##
+    }
+##
+create_part()
+    {
+    ##
+    if [ "$devoperation" == "add" ] && [ ! -z "$devopr_device" ] && [ ! -s $err ]; then 
+        ##
+        ## will add partition
+        ##
+        cmd=`get_add_part_cmd`
+        cat /proc/partitions  | grep "$1" | rev | cut -d ' ' -f 1 | rev > /tmp/old_part_lay
+        eval $cmd 2> $err
+        partprobe $devopr_device 
+	    sleep 2
+    fi
+    ##
+    }
+##
+delete_part()
+    {
+    if [ "$devoperation" == "del" ] && [ ! -z "$devopr_device" ]; then 
+        ##
+        ## will delete partition
+        ##
+        check_part_no_is_exit
+        ##
+        umount_del_part
+        ##
+        if [ ! -s $err ]; then 
+            ##
+            cmd="parted -s $devopr_device rm $devopr_part_no"
+            eval $cmd 2> $err
+            sleep 2
+            partprobe $devopr_device 
+            ##
+        fi
+        ##
+    fi
+    }
+##
+new_part_format()
+    {
+    if [ -f $err ] && [ ! -s $err ] && [ "$devoperation" == "add" ]; then  
+        ##
+        ## if partition is added then it should be mounted 
+        ##
+        partprobe $devopr_device 
+        sleep 3
+        cat /proc/partitions  | grep "$1" | rev | cut -d ' ' -f 1 | rev > /tmp/new_part_lay
+        ##
+        if [ "$devopr_part_type" != "extended" ]; then 
+            new_part_format_fs
+        fi
+    fi
+    }
+##
+unmount_part_mnt_point()
+    { 
+    if ( ( [ -f $err ] && [ ! -s $err ] ) || [ ! -f $err ] ) && [ "$devoperation" == "umnt" ]; then  
+        ##
+        umount "/mnt/$devopr_mnt_point" 
+        ##
+    fi
+    }
+##
+mount_part()
+    {
+    if ( ( [ -f $err ] && [ ! -s $err ] ) || [ ! -f $err ] ) && [ "$devoperation" == "mnt" ] && [ "$devopr_mnt_point" != "" ]; then  
+        ##
+        ## This will mount the disk
+        ##
+        if [ "$(echo "$devopr_device" | grep 'mmcblk')" ]; then
+            mount $store_dev$devopr_part_no "/mnt/""$devopr_mnt_point"  &> /dev/null
+        elif [ "$(echo "$devopr_device" | grep 'nvme')" ]; then
+            mount $store_dev$devopr_part_no "/mnt/""$devopr_mnt_point"  &> /dev/null
+        elif [ "$(echo "$devopr_device" | grep 'sd')" ]; then
+            mount "$store_dev$devopr_part_no" "/mnt/""$devopr_mnt_point" &> /dev/null
+        fi
+        ##
+    fi
+    }
+##
+existing_part_format()
+    {
+    if ( [ "$devoperation" == "mkfs" ] && [ "$devopr_part_lable" != "" ] && [ "$devopr_part_no" -gt "0" ] && [ ! -z "$devopr_device" ] ); then  
+        ##
+        ## This format partition 
+        ##
+        check_part_no_is_exit
+        ##
+        if ( [ -f $err ] && [ ! -s $err ] ) || [ ! -f $err ]; then 
+            ##
+            umount "$store_dev""$devopr_part_no" &> /dev/null
+            format_fs "$store_dev""$devopr_part_no" 
+            ##
+        fi
+    fi
+    }
+##
+set_label_to_existing_part()
+    {
+    if ( [ "$devoperation" != "add" ] && [ "$devopr_part_lable" != "" ] && [ "$devopr_part_no" -gt "0" ] && [ ! -z "$devopr_device" ] ); then  
+        ##
+        ## This will set lable to partition
+        ##
+        check_part_no_is_exit
+        ##
+        if ( [ -f $err ] && [ ! -s $err ] ) || [ ! -f $err ]; then 
+            ##
+            fs="$( parted $devopr_device print | grep '^ ' | tr -s ' ' '|' | sed 's/^|//g'  | grep -E "^$devopr_part_no" | grep -oEi 'ext|msdos|ntfs|vfat' | uniq )"
+            ##
+            [ "$fs" == "" ] && fs=$( blkid | grep -E "^$store_dev""$devopr_part_no" | grep -oEi 'ext|msdos|ntfs|vfat' | awk '{ print tolower($1)}' | uniq ) 
+            ##
+            if [ "$fs" == 'fat' ] || [ "$fs" == 'msdos' ] || [ "$fs" == 'vfat' ]; then 
+                fatlabel "$store_dev""$devopr_part_no" $devopr_part_lable &> /tmp/part.lable
+            elif [ "$fs" == 'ext' ]; then 
+                e2label  "$store_dev""$devopr_part_no" "$devopr_part_lable" &> /tmp/part.lable
+            elif [ "$fs" == 'ntfs' ]; then 
+                ntfslabel "$store_dev""$devopr_part_no" "$devopr_part_lable" &> /tmp/part.lable
+            fi
+            ##
+        fi
+        ##
+    fi
+    }
+##
+do_diskopr()
+    {
+    ##
+    re=1
+    d=`echo $devopr_device | cut -d '/' -f '3'`
+    ##
+    create_part "$d"
+    ##
+    delete_part
+	##
+    new_part_format "$d"
+	##
+    unmount_part_mnt_point 
+	##
+    ##
+    existing_part_format
+	##
+    mount_part
+    ##
+    set_label_to_existing_part
+	##
+    if [ -f $err ]; then  
+        sed -i '/^Warning/d' $err
+        cat $err
+    fi
+    ##
+    # printenv | grep '^dev'
+    ##
+    }
+##
+val_args()
+    {
+    while getopts :d:t:s:f:n:l:p:mraue opts "$@"
+        do
+            case "$opts" in 
+                a)
+                export devoperation=add
+                ;;
+                r)
+                export devoperation=del
+                ;;
+                u)
+                export devoperation=umnt
+                ;;
+                m)
+                export devoperation=mnt
+                ;;
+                e)
+                export devoperation=mkfs
+                ;;
+                d)
+                val_dev "$OPTARG" &> /dev/null
+                ;;
+                t)
+                part_type "$OPTARG" &> /dev/null
+                ;;
+                f)
+                part_fs_type "$OPTARG" &> /dev/null
+                ;;
+                s)
+                part_size "$OPTARG" &> /dev/null
+                ;;
+                p)
+                val_mount_point "$OPTARG" &> /dev/null
+                ;;
+                n)
+                val_part_no "$OPTARG" &> /dev/null
+                ;;
+                l)
+                val_lable "$OPTARG" &> /dev/null 
+                ;;
+                *)
+                diskopr_help
+                ;;
+            esac
+        done
+    }
+##
+rm -rf $err /tmp/old_part_lay /tmp/new_part_lay /tmp/newpart.* &> /dev/null
+##
+if [ "$#" -eq "0" ]; then 
+    diskopr_help
+else
+    ##
+    val_args "$@"
+    ##
+    do_diskopr
+    ##
+fi
+##

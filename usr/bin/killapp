@@ -1,0 +1,20 @@
+#!/bin/bash
+
+killall xfreerdp.orig
+killall xfreerdp
+killall /usr/lib/ICAClient/util/executeStore
+killall /usr/lib/ICAClient/util/executePNA
+killall /opt/Citrix/ICAClient/wfica
+killall /opt/Citrix/ICAClient/storebrowse
+killall /opt/Citrix/ICAClient/AuthManagerDaemon
+killall /opt/Citrix/ICAClient/ServiceRecord
+killall rdesktop
+killall vmware-view
+killall firefox
+killall vncviewer
+killall xpdf
+killall /opt/cisco/anyconnect/bin/vpnui
+killall /opt/cisco/anyconnect/bin/vpnui.orig
+killall /opt/cisco/anyconnect/bin/vpnagentd
+killall leafpad
+

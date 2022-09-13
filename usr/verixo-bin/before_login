@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "LOGGING OUT..." | osd_cat -A center -p middle -f -*-*-bold-*-*-*-36-120-*-*-*-*-*-* -cwhite
+rm -rf /tmp/.before_login
+
+xdotool search "" windowkill %@
+
+sync
+
+mongodb /data/sysconf.db "delete from Processinfo where process !='Desktop'"
+mongodb /data/sysconf.db "delete from AppInfo"
+mongodb /data/sysconf.db "update Connectiontable set Status='',PID=''"
+
+touch /tmp/.before_login
+
+
+

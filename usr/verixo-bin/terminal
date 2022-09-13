@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PSWD=`mongodb "select value from sysconf where property='AdminPassword'"`
+
+while [ 1 ];
+do
+	read -s -p "Enter the admin password: " passwd
+	echo
+
+	if [ "$passwd" = "$PSWD" ]; then
+		clear
+		bash
+		exit
+	else
+		echo "Wrong password..."
+		echo 
+		sleep 3
+	fi
+done

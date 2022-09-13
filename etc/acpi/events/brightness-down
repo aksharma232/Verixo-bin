@@ -1,0 +1,2 @@
+event=video/brightnessdown BRTDN
+action=/usr/verixo-bin/brightness.sh down

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+while [ 1 ]
+do
+if [ -f /root/.language ];then
+
+	. /root/.language
+	sync
+	a=`grep -i "LC_ALL" "/root/.language" | awk -F "=" '{printf $2}'`		
+	LC_ALL=$a /usr/verixo-bin/ConfigurationWizard --restart
+
+else
+	/usr/verixo-bin/ConfigurationWizard
+fi
+sleep 1
+
+done

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set +x
+export TERM=vs100
+msg=`echo $1`
+
+sleep 1
+
+/usr/bin/openvt -c 5 -w -fs /usr/verixo-bin/maindialog.sh "$msg"
+#/usr/bin/openvt -c 5 -w -fs -- dialog --ok-label "Continue" --cancel-label "Reboot" --pause "$msg" 10 70 20
+
+status=$?
+
+exit $status

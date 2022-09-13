@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#AUTHOR PRASHANT POKHRIAL
+#IQL2 BOARD HAS SOME PROBLEM WITH POWER BUTTON EVENT
+#POWER BUTTON PRESS GIVES TWO EVENTS
+#THIS WRAPPER SCRIPT WILL HANDLE THOSE TWO EVENTS
+
+lspci | grep -i vga | grep -i 5a85
+status=$?
+
+if [ $status -eq 0 ]
+then
+	if [ ! -f /tmp/.iql2-powerbtn ]
+	then
+		touch /tmp/.iql2-powerbtn
+		/usr/verixo-bin/powerbtnevent-gui
+	else
+		rm -rf /tmp/.iql2-powerbtn
+	fi	
+else
+	/usr/verixo-bin/powerbtnevent-gui
+fi
+
+

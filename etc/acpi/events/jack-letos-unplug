@@ -1,0 +1,2 @@
+event=jack/headphone HEADPHONE unplug
+action=/usr/verixo-bin/sound_plug_unplug.sh unplug --output

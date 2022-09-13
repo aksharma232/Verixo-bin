@@ -1,0 +1,10 @@
+#!/bin/bash
+set -x 
+
+export DISPLAY=:0
+export PATH=/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/verixo-bin:/usr/X11/bin
+export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/X11R6/lib:/usr/verixo-lib:/usr/X11/lib:/usr/lib/i386-linux-gnu:/lib/i386-linux-gnu:/opt/pcoip-client/lib
+export QT_PLUGIN_PATH=/usr/lib/qt4/plugins
+
+pcoip-getlist.bin $@ 
+ 

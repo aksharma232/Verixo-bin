@@ -1,0 +1,80 @@
+#!/bin/bash
+killall windowlist Sound
+killall idle_vxl
+
+FABULATECH=`sqlite3 /data/sysconf.db "select * from services where ServiceName='FabulaTech'"`
+
+for i in `sqlite3 /data/sysconf.db "select pid from processinfo where process !='Desktop' AND process !='ServerManager'"`
+do
+	kill -9 $i
+done
+
+sync
+
+for k in `sqlite3 /data/sysconf.db "select PID from connectiontable" | sed 's/,/ /g'`
+do
+	kill -9 $k
+done
+
+rm -rf /tmp/.pnagent/
+rm -rf /root/.ICAClient/cache/*.ICA
+
+sync
+
+for j in `sqlite3 /data/sysconf.db "select PID from AppInfo"`
+do
+	kill -9 $j
+done
+
+sync
+
+for i in `wmctrl -l | awk '{print $1}'`
+do
+        xprop -id $i | grep WM_CLASS | grep OS_Desktop | grep LockScreen
+
+        if [ "x$?" == "x0" ]; then
+                continue
+        fi
+
+        xdotool windowminimize `printf "%d\n" $i`
+        xdotool windowkill `printf "%d\n" $i`
+done
+
+killall icewm
+killall icewm*
+
+rm -rf /tmp/.impBG
+rm -rf /tmp/.rdweb
+sync
+
+/usr/bin/killapp
+
+# [ Imprivata ]
+killall -9 ImprivataDaemon
+killall -9 QServerSocket
+killall -9 fpdaemon
+killall -9 gem-prox-tool
+rm -rf /tmp/.cardinfofile
+
+if [ "$FABULATECH" == "FabulaTech" ]
+then
+        /etc/rc.d/service/FabulaTech restart &
+fi
+
+sync
+rm -rf /tmp/.proxcardconnected
+rm -rf /tmp/.fingerprintconnected
+rm -rf /tmp/.enrolluiopened*
+rm -rf /tmp/vcsocket*
+
+/usr/bin/file-remove.sh 
+
+/usr/bin/HighResolution.sh
+
+sync
+echo s > /proc/sysrq-trigger
+
+kill -9 `pidof LockScreen`
+kill -9 `pidof OS_Desktop`
+rm -rf /tmp/.logout
+rm -rf /tmp/.reboot

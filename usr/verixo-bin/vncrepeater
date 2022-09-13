@@ -1,0 +1,8 @@
+#!/bin/sh
+
+while [ 1 ]; do
+	
+	/usr/bin/x11vnc -shared -rfbauth /etc/rc.d/service/.vncpass --ultrafilexfer -connect repeater=ID:$1+$2:$3 & pid=$!
+	wait $pid 
+
+done

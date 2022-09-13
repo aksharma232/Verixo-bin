@@ -1,0 +1,123 @@
+#!/bin/bash
+
+#POKHRIYAL
+#Fri May 26
+#CHECK THE IDLE TIME OF OS AND PERFORM ACTION ACCORDINGLY
+
+export DISPLAY=:0.0
+set -x
+chown -R osuser:osuser /home/osuser/.config
+BRIGHTNESS=true
+IDLETIMEOUT=true
+
+if [ ! -f /tmp/.loggedIn ] || [ ! -f /etc/idle.conf ] || [ ! -s /etc/idle.conf ];then
+	IDLETIMEOUT=false
+fi
+
+PROMPTLOGIN=`/usr/verixo-bin/mongodb /data/sysconf.db "select value from sysconf where Property='PromptLogin'"`
+
+ISIMPRIVATA=`/usr/verixo-bin/mongodb /data/sysconf.db "select value from sysconf where Property='Imprivata'"`
+
+if [ "$IDLETIMEOUT" = true -a "$PROMPTLOGIN" == "Imprivata" -a "$ISIMPRIVATA" == "Enable" ];then
+	IDLETIMEOUT=false
+fi
+
+if [ ! -f /etc/brightness.conf ] || [ ! -s /etc/brightness.conf ];then
+	BRIGHTNESS=false
+fi
+
+if [ "$IDLETIMEOUT" = true ];then
+	TimeCheck=`cat /etc/idle.conf | grep -i idle_time | awk -F"=" '{print $1}'`
+	ActionCheck=`cat /etc/idle.conf | grep -i idle_action | awk -F"=" '{print $1}'`
+
+	if [ "$TimeCheck" !=  "idle_time" ] && [ "$ActionCheck" != "idle_action" ];then
+        	IDLETIMEOUT=false
+	else
+		IDEL_TIME=`cat /etc/idle.conf | grep -i idle_time | awk -F"=" '{print $2}'`
+		IDEL_ACTION=`cat /etc/idle.conf | grep -i idle_action | awk -F"=" '{print $2}'`
+
+		if [ "$IDEL_TIME" == "Never" ] || [ -z $IDEL_TIME ];then
+			IDLETIMEOUT=false
+		fi
+
+	fi
+fi
+
+if [ "$BRIGHTNESS" = true ];then
+	chkReduceAfter=`cat /etc/brightness.conf | grep -i reduceAfter | awk -F"=" '{print $1}'`
+	chkReduceTo=`cat /etc/brightness.conf | grep -i reduceTo | awk -F"=" '{print $1}'`
+
+	if [ "$chkReduceAfter" !=  "reduceAfter" ] && [ "$chkReduceTo" != "reduceTo" ];then
+        	BRIGHTNESS=false
+	else
+		ReduceAfter=`cat /etc/brightness.conf | grep -i reduceAfter | awk -F"=" '{print $2}'`
+		ReduceTo=`cat /etc/brightness.conf | grep -i reduceTo | awk -F"=" '{print $2}'`
+
+		if [ "$ReduceAfter" == "Never" ] || [ -z $ReduceAfter ];then
+			BRIGHTNESS=false
+		fi
+	fi
+fi
+
+
+if [ "$IDLETIMEOUT" = true ] || [ "$BRIGHTNESS" = true ];then
+	OLDVALUE=0
+
+	while :
+	do
+		#Check if Pulse is in use of audio play
+		#then no need of idle-time
+		if [ -f /tmp/.pulserunning ]
+		then
+				OLDVALUE=0
+				VALUE=0
+				echo "Pulse is Running"
+		else
+				VALUE=$(xprintidle)
+
+		if [ ! -f /tmp/.screenlocked ] && [ "$IDLETIMEOUT" = true ];then
+			if [ $OLDVALUE -gt $VALUE ];then
+				rm -rf /tmp/.timeoutexecuted
+			fi
+
+			if [ $VALUE -gt $((IDEL_TIME-10000)) ];then
+				if [ ! -f /tmp/.timeoutexecuted ];then
+					touch /tmp/.timeoutexecuted
+					showBallonMessage "System Idle Timeout" "System idle timeout action will be executed($IDEL_ACTION)"
+				fi
+	  		fi
+
+		
+			if [ $VALUE -ge ${IDEL_TIME} ];then
+				rm /tmp/.timeoutexecuted
+		
+				if [ "$IDEL_ACTION" == "Logout" ];then
+					OS_Desktop --forcelogout
+				fi
+
+				if [ "$IDEL_ACTION" == "Shutdown" ];then
+					OS_Desktop --shutdownnow
+				fi
+	
+				if [ "$IDEL_ACTION" == "Reboot" ];then
+					OS_Desktop --rebootnow
+				fi
+			fi		
+		fi
+
+		if [ "$BRIGHTNESS" = true ];then
+			if [ $VALUE -gt $ReduceAfter ] && [ ! -f /tmp/.brightnessexecuted ];then
+				touch /tmp/.brightnessexecuted
+				/usr/verixo-bin/BrightnessController $ReduceTo
+			fi
+
+			if [ $VALUE -lt $ReduceAfter ] && [ -f /tmp/.brightnessexecuted ];then
+				/usr/verixo-bin/BrightnessController 100
+				rm -rf /tmp/.brightnessexecuted
+			fi
+		fi
+
+  		OLDVALUE=$VALUE
+fi
+	done
+fi

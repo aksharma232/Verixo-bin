@@ -1,0 +1,2 @@
+event=jack/microphone MICROPHONE unplug
+action=/usr/verixo-bin/sound_plug_unplug.sh unplug --input

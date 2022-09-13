@@ -1,0 +1,17 @@
+#!/bin/bash
+#Created by: Mr. Prashant Pokhriyal
+#Citrix Session FullScreen Minimize
+
+
+#Get the Window ID of active wfica
+xdotool search wfica > /tmp/wfica-scan1
+
+for i in `cat /tmp/wfica-scan1`
+do
+	#Minimize activated wfica window with Ctrl+F2+F2	
+	xdotool windowminimize $i
+done	
+	
+	
+
+

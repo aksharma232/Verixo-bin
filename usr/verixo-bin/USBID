@@ -1,0 +1,16 @@
+#!/bin/bash
+
+export DISPLAY=:0
+
+if [ -d "/lib64" ]; then
+        export LD_LIBRARY_PATH=/usr/lib64/openssl-1.0:/usr/lib64/qt4/lib:/lib64:/usr/lib64:/lib:/usr/lib:/usr/X11R6/lib:/usr/verixo-lib:/usr/X11/lib:/usr/lib/i386-linux-gnu:/lib/i386-linux-gnu
+        export QT_PLUGIN_PATH=/usr/lib64/qt4/plugins/
+        export PATH=/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/verixo-bin:/usr/X11/bin
+else
+        export PATH=/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/verixo-bin:/usr/X11/bin
+        export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/X11R6/lib:/usr/verixo-lib:/usr/X11/lib:/usr/lib/i386-linux-gnu:/lib/i386-linux-gnu
+        export QT_PLUGIN_PATH=/usr/lib/qt4/plugins/
+fi
+
+/usr/verixo-bin/USBID-orig $@
+

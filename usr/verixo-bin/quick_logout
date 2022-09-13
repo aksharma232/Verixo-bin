@@ -1,0 +1,21 @@
+#!/bin/bash
+killall windowlist Sound
+/usr/verixo-bin/vKill
+
+# [ Imprivata ]
+killall -9 ImprivataDaemon
+killall -9 QServerSocket
+killall -9 fpdaemon
+killall -9 gem-prox-tool
+
+rm -rf /tmp/.proxcardconnected
+rm -rf /tmp/.fingerprintconnected
+rm -rf /tmp/.enrolluiopened*
+rm -rf /tmp/vcsocket*
+rm -rf /tmp/.cardinfofile
+rm -rf /root/.ICAClient/cache/*.ICA
+/usr/bin/file-remove.sh 
+
+
+sync
+kill -9 `pidof OS_Desktop`

@@ -1,0 +1,54 @@
+#!/bin/bash
+
+killall idle_vxl
+
+for i in `wmctrl -l | awk '{print $1}'`
+do
+	xprop -id $i | grep WM_CLASS | grep OS_Desktop
+
+	if [ "x$?" == "x0" ]; then
+		continue
+	fi
+
+ 	xdotool windowminimize `printf "%d\n" $i`
+ 	xdotool windowkill `printf "%d\n" $i`
+done
+
+if [ "$1" != "impri" ]; then
+	killall icewm
+	killall icewm*
+
+	PIDOSD=`pidof  OS_Desktop`
+
+	for i in `sqlite3 /data/sysconf.db "select pid from processinfo where process !='Desktop' AND process !='ServerManager'"`
+	do
+		if [ $PIDOSD != $i ]; then
+			kill -9 $i
+		fi
+	done
+fi
+
+sync
+
+for k in `sqlite3 /data/sysconf.db "select PID from connectiontable" | sed 's/,/ /g'`
+do
+	kill -9 $k
+done
+
+killall -9 LaunchConnection
+rm -rf /tmp/.pnagent/
+
+sync
+
+for j in `sqlite3 /data/sysconf.db "select PID from AppInfo"`
+do
+	kill -9 $j
+done
+
+sync
+
+rm -f /tmp/.loggedIn
+touch /tmp/.logout
+rm -rf /tmp/.rdweb
+sync
+/usr/bin/killapp

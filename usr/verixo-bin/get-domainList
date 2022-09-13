@@ -1,0 +1,52 @@
+#!/bin/bash
+
+trap terminating 0 2 3 6 9 15
+
+terminating()
+{
+  rm -f /opt/Citrix/ICAClient/lib/UIDialogLib.so /opt/Citrix/ICAClient/lib/UIDialogLibWebKit3.so
+  ln -s /opt/Citrix/ICAClient/lib/UIDialogLibWebKit3.so-orig /opt/Citrix/ICAClient/lib/UIDialogLibWebKit3.so
+  ln -s /opt/Citrix/ICAClient/lib/UIDialogLibWebKit3.so /opt/Citrix/ICAClient/lib/UIDialogLib.so
+
+  rm -f /tmp/.getdomainlist
+  killall -9 AuthManagerDaemon ServiceRecord 2>/dev/null
+  exit 0
+}
+
+
+if [ $# -eq 0 ]; then
+	echo "No arguments supplied"
+	exit 1
+fi
+
+if [ -f "/tmp/.getdomainlist" ]; then
+        echo "Getting domain list is already in progress"
+        exit 1
+fi
+
+touch /tmp/.getdomainlist
+
+killall -9 AuthManagerDaemon ServiceRecord 2>/dev/null
+rm /tmp/.domainlist 2>/dev/null
+
+cd /opt/Citrix/ICAClient/lib/
+
+rm UIDialogLib.so UIDialogLibWebKit3.so
+
+ln -s GetDomainLibWebKit3.so-orig UIDialogLib.so
+ln -s GetDomainLibWebKit3.so-orig UIDialogLibWebKit3.so
+
+LINK=`/usr/lib/ICAClient/util/storebrowse "$@"` 
+
+rm UIDialogLib.so UIDialogLibWebKit3.so
+
+ln -s UIDialogLibWebKit3.so-orig UIDialogLibWebKit3.so
+ln -s UIDialogLibWebKit3.so UIDialogLib.so
+
+rm -f /tmp/.getdomainlist
+
+killall -9 AuthManagerDaemon ServiceRecord 2>/dev/null
+
+echo "exit"
+exit 0
+

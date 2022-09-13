@@ -1,0 +1,99 @@
+#!/bin/bash 
+
+CONNNAME="ConnPNA-"
+ARGS=""
+SPACE=" "
+COUNT=0
+LASTARG=""
+
+FIRSTARG=$1
+CMPVAL=2
+
+if [ "$FIRSTARG" == "getlist" ]; then
+	CMPVAL=1
+fi
+
+#while [ $# -ge $CMPVAL ]
+#do
+#	if [ $COUNT = 0 ]; then
+#		#eval CONNNAME+=$1
+#		CONNNAME=$CONNNAME$1
+#	else
+#		eval ARGS+=\$1
+#		eval ARGS+=\$SPACE
+#        fi
+#	shift
+#	COUNT=$(($COUNT + 1));
+#done
+
+CONNNAME=$CONNNAME$1
+
+
+#REMOVE SPACE IN PUBLISHED APPLICATION NAME
+#Passed CONNName and FileName in ""
+#CONNNAME=`echo $CONNNAME | sed -e 's/ /-/g'`
+
+LASTARG=`echo "${@: -1}"`
+
+export LD_LIBRARY_PATH=/usr/lib/appdepend-lib/:$LD_LIBRARY_PATH
+
+shift
+if [ "$CONNNAME" == "ConnPNA-getlist" ]; then
+	#/usr/lib/ICAClient/util/pnabrowse -i32x32 $ARGS
+	/usr/lib/ICAClient/util/pnabrowse -i32x32 "$@"
+	exit
+fi
+
+#######
+FILENAME="/tmp/.pnagent/${CONNNAME}.pid"
+ERRFILENAME="/tmp/.pnagent/${CONNNAME}.err"
+echo "$FILENAME"
+touch "$FILENAME"
+
+substring=":"
+string="$FIRSTARG"
+if [ "$string" != "${string%$substring*}" ]; then
+        TCCenter "ChangeStatus" "$string" "PNAgent" 1>/dev/null 2>/dev/null
+	echo "Sent signal to TC"
+fi
+
+rm -f $ERRFILENAME
+
+#/usr/lib/ICAClient/util/pnabrowse $ARGS "$LASTARG" -i32x32 -c "$CONNNAME" 2>"$ERRFILENAME" &
+/usr/lib/ICAClient/util/pnabrowse "$@" "$LASTARG" -i32x32 -c "$CONNNAME" 2>"$ERRFILENAME" &
+CPID=`pidof pnabrowse`
+
+echo $CPID
+
+#MPID=`ps ax | grep ${CONNNAME} | grep -v grep  | awk '{ print $1 }'`
+
+#CPID=`ps h --ppid $MPID | grep -v grep  | awk '{ print $1 }'`
+sleep 3
+
+#CPID=`pidof wfica | tail -n 1`
+
+pidof pnabrowse
+PNA_STATUS=$?
+
+if [ $PNA_STATUS -eq 0 ]
+then
+	rm -rf $ERRFILENAME
+else
+	echo "FAIL TO LAUNCH PNABROWSE"
+fi
+echo -ne $CPID > "$FILENAME"
+rm -f /tmp/.pnaforcsl
+
+PDIR="/proc/$CPID"
+
+wait $CPID &>/dev/null  #ignore error if kill/disconnect from TCCenter Discconect button
+
+#while [ -d "$PDIR"  ]
+#while [ -d "$PDIR" ] && [ "$NSTATUS" = "0" ]
+#do
+#	sleep 1
+#done
+
+rm -f "$FILENAME"
+
+echo "Connection closed"
